@@ -54,33 +54,53 @@ int udp_create()
 
 int udp_receive(Clbk my_clbk)
 {
-   // wait for new message
-   socklen_t client_len = sizeof(client_addr);
-   ssize_t recv_size = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &client_len);
+   fd_set readfds;
+   FD_ZERO(&readfds);
+   FD_SET(sockfd, &readfds);
 
-   if (recv_size == -1)
+   // set timeout to zero for non-blocking behaviour
+   struct timeval tv;
+   tv.tv_sec = 0;
+   tv.tv_usec = 0;
+
+   int rv = select(sockfd + 1, &readfds, NULL, NULL, &tv);
+   if (rv == -1)
    {
-      perror("Error in receiving message");
-      close(sockfd);
+      perror("Error in select");
       exit(EXIT_FAILURE);
    }
-   else if (recv_size == 0)
+   else if (rv == 0)
    {
       // no data available
    }
    else
    {
-      // announce the message
-      ssize_t bytes_to_send = my_clbk(buffer, recv_size);
-      if (bytes_to_send > 0)
-      {
-         // send response if necessary
-         ssize_t send_size = sendto(sockfd, buffer, bytes_to_send, 0, (const struct sockaddr*)&client_addr, client_len);
+      // wait for new message
+      socklen_t client_len = sizeof(client_addr);
+      ssize_t recv_size = recvfrom(sockfd, buffer, sizeof(buffer), 0, (struct sockaddr*)&client_addr, &client_len);
 
-         if (send_size == -1) {
-            perror("Error in sending answer");
-            close(sockfd);
-            exit(EXIT_FAILURE);
+      if (recv_size == -1)
+      {
+         perror("Error in receiving message");
+         exit(EXIT_FAILURE);
+      }
+      else if (recv_size == 0)
+      {
+         // no data available
+      }
+      else
+      {
+         // announce the message
+         ssize_t bytes_to_send = my_clbk(buffer, recv_size);
+         if (bytes_to_send > 0)
+         {
+            // send response if necessary
+            ssize_t send_size = sendto(sockfd, buffer, bytes_to_send, 0, (const struct sockaddr*)&client_addr, client_len);
+
+            if (send_size == -1) {
+               perror("Error in sending answer");
+               exit(EXIT_FAILURE);
+            }
          }
       }
    }
