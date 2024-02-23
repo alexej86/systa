@@ -6,4 +6,5 @@ project(systa)
 set(CMAKE_CPP_STANDARD 11)
 
 # Define the executable
-add_executable(systa main.cpp systa.cpp SystaCompact_II.cpp udp.cpp)
+add_executable(systa main.cpp systa.cpp SystaCompact_II.cpp udp.cpp mqtt.cpp)
+target_link_libraries(systa mosquitto)
