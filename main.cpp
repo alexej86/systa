@@ -19,7 +19,7 @@ int main() {
    {
       udp_receive(&process);
 
-      usleep(1000); // reduce cpu load
+      usleep(10000); // reduce cpu load
    }
 
    udp_close();
