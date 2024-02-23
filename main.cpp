@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "udp.hpp"
 #include "SystaCompact_II.hpp"
 
@@ -17,6 +18,8 @@ int main() {
    while(1)
    {
       udp_receive(&process);
+
+      usleep(1000); // reduce cpu load
    }
 
    udp_close();
@@ -33,7 +36,7 @@ static ssize_t process(char * buffer, ssize_t len)
 
    pSysta->push_values(pPacket);
 
-   // TODO generate responce packet
+   // TODO generate response packet
 
    return 0;
 }

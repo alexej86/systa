@@ -105,6 +105,7 @@ void Systa::push_values(struct ReceivePacket * pRecvPacket)
          // set to default if not in the list
          value = SystaValue("unknown value " + std::to_string(i), eVALUE_UNKNOWN);
       }
+
       std::cout << value.to_string(pRecvPacket->Values[i]) << std::endl;
    }
 }
