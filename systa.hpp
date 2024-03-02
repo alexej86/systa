@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <map>
 #include <string>
+#include <functional>
 
 #define NR_OF_VALUES 256
 
@@ -36,6 +37,7 @@ class SystaValue
 private:
    std::string m_name;
    enum VALUE_TYPE m_type;
+   int32_t m_value;
 
 public:
    SystaValue() { /* default constructor */};
@@ -47,11 +49,16 @@ public:
    ~SystaValue() = default;
 
    std::string get_name() const { return m_name; };
-   std::string to_string(int32_t val);
+   std::string to_string() const;
+
+   void Set(int32_t value) { this->m_value = value; };
 };
 
 //
 typedef std::map<uint16_t, SystaValue> SystaValues;
+
+
+typedef std::function<void(const SystaValue &value)> NewValueCallback;
 
 /*!
  *
@@ -68,10 +75,11 @@ public:
    Systa();
    ~Systa() = default;
 
-   bool get_value(uint16_t id, SystaValue & value);
+   bool get_value(uint16_t id, int32_t i32_value, SystaValue & value);
 
    //! @todo rename function
-   void push_values(struct ReceivePacket * pRecvPacket);
+   void parse_values(struct ReceivePacket * pRecvPacket, NewValueCallback clbk);
 };
+
 
 #endif // SYSTA_HPP_INCLUDED

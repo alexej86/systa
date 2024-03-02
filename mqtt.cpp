@@ -40,9 +40,9 @@ int mqtt_loop()
    return 0;
 }
 
-int mqtt_publish(const char * message)
+int mqtt_publish(const char * topic, const char * message)
 {
-   int ret = mosquitto_publish(mosq, NULL, "systa/test", strlen(message), message, 0, false);
+   int ret = mosquitto_publish(mosq, NULL, topic, strlen(message), message, 0, false);
    if (ret != MOSQ_ERR_SUCCESS)
    {
       fprintf(stderr, "Error publishing message\n");

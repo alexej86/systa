@@ -31,6 +31,14 @@ int main() {
    return 0;
 }
 
+void new_value(const SystaValue &value)
+{
+   const std::string topic = "systa/" + value.get_name();
+   const std::string payload = value.to_string();
+
+   mqtt_publish(topic.c_str(), payload.c_str());
+}
+
 /*!
  *
  */
@@ -38,11 +46,10 @@ static ssize_t process(char * buffer, ssize_t len)
 {
    struct ReceivePacket * pPacket = (struct ReceivePacket *) buffer;
 
-   pSysta->push_values(pPacket);
-
-   mqtt_publish("my_message");
+   pSysta->parse_values(pPacket, new_value);
 
    // TODO generate response packet
 
    return 0;
 }
+

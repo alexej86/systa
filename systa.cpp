@@ -22,7 +22,7 @@ void Systa::register_value(uint16_t id, SystaValue value)
 /*!
  *
  */
-bool Systa::get_value(uint16_t id, SystaValue & value)
+bool Systa::get_value(uint16_t id, int32_t i32_value, SystaValue & value)
 {
    bool ret = false;
 
@@ -30,31 +30,32 @@ bool Systa::get_value(uint16_t id, SystaValue & value)
    if (pos != m_values.end())
    {
       value = pos->second;
+      value.Set(i32_value);
       ret = true;
    }
 
    return ret;
 }
 
-std::string SystaValue::to_string(int32_t val)
+std::string SystaValue::to_string() const
 {
-   std::string str = this->m_name + ":";
+   std::string str; //= this->m_name + ":";
 
    switch (this->m_type)
    {
    case eVALUE_TYPE_INT:
-      str += std::to_string(val);
+      str += std::to_string(this->m_value);
       break;
    case eVALUE_TYPE_INT_10:
-      str += std::to_string(val / 10);
+      str += std::to_string(this->m_value / 10);
       break;
    case eVALUE_TYPE_FLOAT_10:
-      str += std::to_string(((float) val) / 10.0);
+      str += std::to_string(((float) this->m_value) / 10.0);
       break;
    case eVALUE_BETRIEBSART:
    {
       // 0=Heiprogramm 1, 1=Heiprogramm 2, 2=Heiprogramm 3, 3=Dauernd Normal, 4=Dauernd Komfort, 5=Dauernd Absenken
-      switch (val)
+      switch (this->m_value)
       {
       case 0:
          str += "Heizprogramm 1";
@@ -83,9 +84,9 @@ std::string SystaValue::to_string(int32_t val)
    case eVALUE_UNKNOWN:
    default:
       str += "[";
-      str += std::to_string(val) + "|";
-      str += std::to_string(val / 10) + "|";
-      str += std::to_string(((float) val) / 10.0) + "]";
+      str += std::to_string(this->m_value) + "|";
+      str += std::to_string(this->m_value / 10) + "|";
+      str += std::to_string(((float) this->m_value) / 10.0) + "]";
       break;
    }
 
@@ -95,17 +96,24 @@ std::string SystaValue::to_string(int32_t val)
 /*!
  *
  */
-void Systa::push_values(struct ReceivePacket * pRecvPacket)
+void Systa::parse_values(struct ReceivePacket * pRecvPacket, NewValueCallback clbk)
 {
    for (size_t i = 0; i < NR_OF_VALUES; i++)
    {
+      const int32_t i32_value = pRecvPacket->Values[i];
       SystaValue value;
-      if (!this->get_value(i, value))
+      if (!this->get_value(i, i32_value, value))
       {
          // set to default if not in the list
          value = SystaValue("unknown value " + std::to_string(i), eVALUE_UNKNOWN);
+         value.Set(i32_value);
+      }
+      else
+      {
+         // publish only if value is known
+         clbk(value);
       }
 
-      std::cout << value.to_string(pRecvPacket->Values[i]) << std::endl;
+      std::cout << value.to_string() << std::endl;
    }
 }
